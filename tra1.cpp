@@ -4,6 +4,8 @@
 #include <cmath>
 #include <limits>
 using namespace std;
+/*5.1 - A biblioteca mencionada no item 5 */
+#include "HSV_2_RBG_H.h"
 
 //criação do struct que ira armazenar as coordenadas do ponto preto
 struct Ponto
@@ -15,6 +17,57 @@ struct Ponto
     Ponto():linha(0),coluna(0){}
 };
 
+rgb hsv2rgb(hsv HSV)
+{
+    rgb RGB;
+    double H = HSV.h, S = HSV.s, V = HSV.v,
+            P, Q, T,
+            fract;
+
+    (H == 360.)?(H = 0.):(H /= 60.);
+    fract = H - floor(H);
+
+    P = V*(1. - S);
+    Q = V*(1. - S*fract);
+    T = V*(1. - S*(1. - fract));
+
+    if      (0. <= H && H < 1.)
+        RGB = (rgb) { V, T, P};
+    else if (1. <= H && H < 2.)
+        RGB = (rgb){Q, V, P};
+    else if (2. <= H && H < 3.)
+        RGB = (rgb){P,  V,  T};
+    else if (3. <= H && H < 4.)
+        RGB = (rgb){P,  Q,  V};
+    else if (4. <= H && H < 5.)
+        RGB = (rgb){T,  P,  V};
+    else if (5. <= H && H < 6.)
+        RGB = (rgb){V,  P,  Q};
+    else
+        RGB = (rgb){0.,  0.,  0};
+
+    return RGB;
+}
+
+//Dado um valor real entre 0 e 1, mapeia esse valor para uma cor...
+//Ou seja, transforma uma escala linear em uma cor no formato r,g,b
+Cor geraCorDist(double distPercent) {
+	if(distPercent <= 0.00000001) {
+		return Cor(0,0,0);
+	}
+	hsv corHSV;
+	corHSV.h = 360*distPercent; //A entrada da funcao hsv2rgb usa valores de h entre 0 e 360 
+	corHSV.s = 1;
+	corHSV.v = 1;
+	rgb c = hsv2rgb(corHSV);
+
+    int rgbR = c.r*255; //Os componentes rgb gerados pela funcao hsv2rgb estao entre 0 e 1 --> precisamos converter para algo entre 0 e 255
+    int rgbG = c.g*255;
+    int rgbB = c.b*255;
+
+    //rgbR,rgbG e rgbB sao os componentes RGB gerados. Adapte o resto do codigo para que ele retorne a cor utilizando o tipo que voce criou no seu trabalho...
+	return Cor(rgbR,rgbG,rgbB); //adapte ...
+}
 
 //conferir funcionamento de get em ED - feito
 //criar git para o trabalho - feito
@@ -25,6 +78,7 @@ struct Ponto
 
 /*4-Inclusão da bibliote MyVec para utilização do algoritmo trivial melhorado*/
 #include "MyVec.h"
+
 
 //utlização do algoritmo de euclidiano para calcular a a distancia entre celulas
 double calculoDistancia(int x1,int y1,int x2,int y2){
@@ -119,7 +173,7 @@ void processamento(const MyMatrix<int>& imagem,const MyMatrix<int>& distancias, 
             cout << endl;
         }
     }else if(outputMode == "resumo"){
-        int soma = 0;
+        unsigned long long soma = 0;
         for (int i = 0; i < distancias.getLinhas(); i++)
         {
             for (int j = 0; j < distancias.getColuns(); j++)
@@ -130,6 +184,38 @@ void processamento(const MyMatrix<int>& imagem,const MyMatrix<int>& distancias, 
         cout << soma << endl;
         
     }else if(outputMode == "cor"){
+        /*5- Criação do processamento de cor, utilizando uma biblioteca contendo structs conforme o programa ja disponibilizado e adptado*/
+        int linhas = imagem.getLinhas(); int colunas = imagem.getColuns();
+        double maxDistancia = 0;
+        cout << "P3" << endl;
+        cout << colunas << " " << linhas << endl;
+        cout << "255" << endl;
+        // Todo esse for é O(M*N)
+        for (int i = 0; i < linhas; i++)
+        {
+            for (int j = 0; j < colunas; j++)
+            {
+                double dist = distancias.getValor(i,j);
+                if (dist > maxDistancia)
+                {
+                    maxDistancia = dist;
+                }
+                
+            }
+            
+        }
+
+        for (int i = 0; i < linhas; i++) //O(3*M*N) - > O(M*N)
+        {
+            for (int j = 0; j < colunas; j++)
+            {
+                double distPerct = distancias.getValor(i,j)/(maxDistancia);
+                Cor cor = geraCorDist(distPerct);
+                cout << cor.r << " " << cor.g << " " << cor.b << " " ;
+            }
+        cout << endl;
+        }
+        
         
     }else{//caso em que nao existe essa saida
 
