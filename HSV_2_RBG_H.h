@@ -25,6 +25,5 @@ typedef struct {
 } rgb;
 
 rgb hsv2rgb(hsv HSV);
-Cor geraCorDist(double distPercent);
 
 #endif // HSV_2_RBG
