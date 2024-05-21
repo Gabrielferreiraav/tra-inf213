@@ -51,9 +51,10 @@ rgb hsv2rgb(hsv HSV)
 
 //Dado um valor real entre 0 e 1, mapeia esse valor para uma cor...
 //Ou seja, transforma uma escala linear em uma cor no formato r,g,b
-Cor geraCorDist(double distPercent) {
+void geraCorDist(double distPercent) {
 	if(distPercent <= 0.00000001) {
-		return Cor(0,0,0);
+		cout << "0" << " " << "0"<< " " << "0" << " ";
+        return;
 	}
 	hsv corHSV;
 	corHSV.h = 360*distPercent; //A entrada da funcao hsv2rgb usa valores de h entre 0 e 360 
@@ -66,7 +67,8 @@ Cor geraCorDist(double distPercent) {
     int rgbB = c.b*255;
 
     //rgbR,rgbG e rgbB sao os componentes RGB gerados. Adapte o resto do codigo para que ele retorne a cor utilizando o tipo que voce criou no seu trabalho...
-	return Cor(rgbR,rgbG,rgbB); //adapte ...
+	cout << rgbR << " " << rgbG << " " << rgbB << " ";
+    return;//adapte ...
 }
 
 //conferir funcionamento de get em ED - feito
@@ -82,15 +84,10 @@ Cor geraCorDist(double distPercent) {
 
 //utlização do algoritmo de euclidiano para calcular a a distancia entre celulas
 double calculoDistancia(int x1,int y1,int x2,int y2){
-    return sqrt(pow(x2-x1,2)+ pow(y2-y1,2));
+    return sqrt(pow((x1-x2),2)+ pow((y1-y2),2));
 }
-/*2 - Função de processemento da imagens recebidas*/
-//Pode melhorara eficiência utilizando um map para associar cada caso
-//incompleto pois é a parte central de processamento de dados
-//revisar a logica dessa função
-void processamento(const MyMatrix<int>& imagem,const MyMatrix<int>& distancias, const string& algoritmo, const string& outputMode){
-    if(algoritmo == "trivial"){
-        /*3- Criação do algoritmo trivial que faz o calulo das distancias de cada pixel branco ao pixel preto mais proximo*/
+void trivial (const MyMatrix<int>& imagem,const MyMatrix<double>& distancias){
+    /*3- Criação do algoritmo trivial que faz o calulo das distancias de cada pixel branco ao pixel preto mais proximo*/
         int linhas = imagem.getLinhas(); int colunas = imagem.getColuns();
         //O(n²)
         //faz o calculo de distancias analisando todas as possibilidades
@@ -106,7 +103,7 @@ void processamento(const MyMatrix<int>& imagem,const MyMatrix<int>& distancias, 
                         {
                             if ((imagem.getValor(linha,coluna)) == 0)
                             {
-                                double distancia = round(calculoDistancia(i,j,linha,coluna));
+                                double distancia = calculoDistancia(i,j,linha,coluna);
                                 if(distancia < minDistancia) minDistancia = distancia;
                             }
                             
@@ -118,10 +115,11 @@ void processamento(const MyMatrix<int>& imagem,const MyMatrix<int>& distancias, 
             }
             
         }
-        
-        
-    }else if (algoritmo == "melhorado"){
-        /*5-Criação do algoritmo trivial melhorado, visando armazenar em Myvec os valores dos pontos pretos*/
+}
+
+
+void melhorado (const MyMatrix<int>& imagem,const MyMatrix<double>& distancias){
+    /*5-Criação do algoritmo trivial melhorado, visando armazenar em Myvec os valores dos pontos pretos*/
         //utilização de ordenação indireta para armazenar ordenadamente os pixeis pretos
         int linhas = imagem.getLinhas(); int colunas = imagem.getColuns(); 
         MyVec<Ponto> pontosPreto;
@@ -147,19 +145,93 @@ void processamento(const MyMatrix<int>& imagem,const MyMatrix<int>& distancias, 
                     for (int pos = 0; pos < pontosPreto.size(); pos++)
                     {
                         const Ponto& ponto = pontosPreto[pos];
-                        double distancia = round(calculoDistancia(i,j,ponto.linha,ponto.coluna));
+                        double distancia = calculoDistancia(i,j,ponto.linha,ponto.coluna);
                         if(distancia < minDistancia) minDistancia = distancia;
                     }
                 distancias.set(i,j,minDistancia);
-                }
+                
             }
         }
+        }
+}
+/*2 - Função de processemento da imagens recebidas*/
+//Pode melhorara eficiência utilizando um map para associar cada caso
+//incompleto pois é a parte central de processamento de dados
+//revisar a logica dessa função
+void processamento(const MyMatrix<int>& imagem,const MyMatrix<double>& distancias, const string& outputMode){
+    //if(algoritmo == "trivial"){
+        /*3- Criação do algoritmo trivial que faz o calulo das distancias de cada pixel branco ao pixel preto mais proximo*/
+        /*int linhas = imagem.getLinhas(); int colunas = imagem.getColuns();
+        //O(n²)
+        //faz o calculo de distancias analisando todas as possibilidades
+        for (int i = 0; i < linhas; i++)
+        {
+            for (int j = 0; j < colunas; j++)
+            {
+                if ((imagem.getValor(i,j)) == 255){
+                    double minDistancia = calculoDistancia(0,0,linhas,colunas);
+                    for (int linha = 0; linha < linhas; linha++)
+                    {
+                        for (int coluna = 0; coluna < colunas; coluna++)
+                        {
+                            if ((imagem.getValor(linha,coluna)) == 0)
+                            {
+                                double distancia = calculoDistancia(i,j,linha,coluna);
+                                if(distancia < minDistancia) minDistancia = distancia;
+                            }
+                            
+                        }
+                        
+                    }
+                   distancias.set(i,j,minDistancia);
+                }
+            }
+            
+        }*/
+        
+        
+    //}else if (algoritmo == "melhorado"){
+        
+        /*5-Criação do algoritmo trivial melhorado, visando armazenar em Myvec os valores dos pontos pretos*/
+        //utilização de ordenação indireta para armazenar ordenadamente os pixeis pretos
+        /*int linhas = imagem.getLinhas(); int colunas = imagem.getColuns(); 
+        MyVec<Ponto> pontosPreto;
+        for (int i = 0; i < linhas; i++)
+        {
+            for (int j = 0; j < colunas; j++)
+            {
+                if (imagem.getValor(i,j) == 0)
+                {
+                    pontosPreto.push_back(Ponto(i,j));
+                }
+                
+            }
+            
+        }
+        //utilizando de modo parecido com algoritmo trivial
+        for (int i = 0; i < linhas; i++)
+        {
+            for (int j = 0; j < colunas; j++)
+            {
+                if ((imagem.getValor(i,j)) == 255){
+                    double minDistancia = calculoDistancia(0,0,linhas,colunas);
+                    for (int pos = 0; pos < pontosPreto.size(); pos++)
+                    {
+                        const Ponto& ponto = pontosPreto[pos];
+                        double distancia = calculoDistancia(i,j,ponto.linha,ponto.coluna);
+                        if(distancia < minDistancia) minDistancia = distancia;
+                    }
+                distancias.set(i,j,minDistancia);
+                
+            }
+        }
+        }*/
 
-    }else if(algoritmo == "eficiente"){
+    //}else if(algoritmo == "eficiente"){
 
-    }else{//caso que n existe o algoritmo
+    //}else{//caso que n existe o algoritmo
 
-    }
+    //}
 
     //Parte da saida
     if (outputMode == "distancia"){
@@ -168,7 +240,7 @@ void processamento(const MyMatrix<int>& imagem,const MyMatrix<int>& distancias, 
         {
             for (int j = 0; j < colunas; j++)
             {
-                cout << distancias.getValor(i,j) << " ";
+                cout << round(distancias.getValor(i,j)) << " ";
             }
             cout << endl;
         }
@@ -210,8 +282,7 @@ void processamento(const MyMatrix<int>& imagem,const MyMatrix<int>& distancias, 
             for (int j = 0; j < colunas; j++)
             {
                 double distPerct = distancias.getValor(i,j)/(maxDistancia);
-                Cor cor = geraCorDist(distPerct);
-                cout << cor.r << " " << cor.g << " " << cor.b << " " ;
+                geraCorDist(distPerct);
             }
         cout << endl;
         }
@@ -252,7 +323,7 @@ int main (int argc, char* argv[]){
     string formato;
     int linhas,colunas,maxCor;
     cin >> formato >> colunas >> linhas >> maxCor;
-    MyMatrix<int> distancias(linhas, colunas);
+    MyMatrix<double> distancias(linhas, colunas);
     MyMatrix<int> imagem(linhas,colunas);
     for (int i = 0; i < linhas; i++)
     {
@@ -265,7 +336,14 @@ int main (int argc, char* argv[]){
     }
 
     //NUCLEO DE PROCESSAMENTO NA MAIN
-    processamento(imagem,distancias,algoritmo,outputMode);
+    if (algoritmo == "trivial")
+    {
+        trivial(imagem,distancias);
+    }else if (algoritmo == "melhorado")
+    {
+        melhorado(imagem,distancias);
+    }
+    processamento(imagem,distancias,outputMode);
 
     return 0;
     
